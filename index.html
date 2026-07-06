@@ -348,7 +348,7 @@ ol.steps strong{color:var(--text);font-weight:600}
   .logo-sub{display:none}
   .tb-divider{display:none}
   /* hide carrier + customs val + pkg on mobile — accessible via Setup */
-  #tb-pkg{display:none} /* pkg weight hidden — set in Setup */
+  /* all topbar controls visible on mobile */
   /* yen rate + TCS stay visible */
   .tb-ctrl{padding:2px 6px;gap:3px;font-size:11px}
   .tb-ctrl label{font-size:10px;color:var(--t2)}
@@ -588,6 +588,15 @@ ol.steps strong{color:var(--text);font-weight:600}
         <option value="Japan Post">Japan Post</option>
         <option value="FedEx">FedEx</option>
       </select>
+    </div>
+    <div class="tb-ctrl" id="tb-custoverride" title="Override total customs in PKR — leave blank to auto-calculate per line">
+      <label>Customs (PKR)</label>
+      <input type="number" id="customsOverrideInput" placeholder="auto"
+        style="width:60px" min="0"
+        onchange="onCustomsOverride(this.value)"
+        onblur="onCustomsOverride(this.value)">
+      <span style="font-size:10px;font-weight:500" id="customsOverrideBadge"></span>
+      <button class="step-sm" onclick="clearCustomsOverride()" title="Reset to auto" style="font-size:10px;width:18px">×</button>
     </div>
     <div class="tb-right">
       <button class="btn" onclick="showTab('shipments')">
@@ -878,12 +887,13 @@ ol.steps strong{color:var(--text);font-weight:600}
 const SHEET_ID  = '1P1ZOZKqswC22NzXJLc_YAnrAlugOrJjdshBPX8VIUwY';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
 const TABS = { PRODUCTS:'Product Master', RATES:'Shipping Rates', HEADERS:'Saved Shipments', LINES:'Shipment Lines' };
-const LS   = { WA:'ts_wa_url', KEY:'ts_api_key', RATE:'ts_yen_rate', PKG:'ts_pkg_weight', CVF:'ts_cv_formula', TCS:'ts_tcs_default', CARRIER:'ts_carrier', PRODS:'ts_products', RATES:'ts_rates', SHIPS:'ts_ships' };
+const LS   = { WA:'ts_wa_url', KEY:'ts_api_key', RATE:'ts_yen_rate', PKG:'ts_pkg_weight', CVF:'ts_cv_formula', TCS:'ts_tcs_default', CARRIER:'ts_carrier', CUSTOV:'ts_cust_override', PRODS:'ts_products', RATES:'ts_rates', SHIPS:'ts_ships' };
 
 let WA_URL   = '';
 let yenRate  = 1.75;
 let pkgWeight= 400;
 let tcsDefault = 500;
+let customsOverride = null; // null = auto, number = manual override
 let products = [];
 let allRates = [];  // [{carrier, maxW, price}]
 let selectedCarrier = 'Japan Post';
@@ -1290,10 +1300,13 @@ function renderResults(calcs, first) {
   const totalShip = first.totalShip;
   const su        = calcs.reduce((s,c)=>s+c.units,0);
   const stj       = calcs.reduce((s,c)=>s+c.totJPY,0);
-  const scj       = calcs.reduce((s,c)=>s+c.customsJPY,0);
+  const scjRaw     = calcs.reduce((s,c)=>s+c.customsJPY,0);
+  const scj        = customsOverride !== null ? customsOverride : scjRaw; // override if set
   const stc       = calcs.reduce((s,c)=>s+c.totCost,0);
   const sTCS      = calcs.reduce((s,c)=>s+(c.tcs*c.units),0); // total TCS across all units
-  const stcPKR    = stc*yenRate + sTCS; // total cost PKR = product/ship/customs converted + TCS
+  // customsOverride is in PKR — replace customs PKR portion in total cost
+  const customsPKRCalc = customsOverride !== null ? customsOverride : scjRaw * yenRate;
+  const stcPKR    = stc*yenRate - scjRaw*yenRate + customsPKRCalc + sTCS;
   const sp        = calcs.reduce((s,c)=>s+c.totProfPKR,0);
   const spj       = calcs.reduce((s,c)=>s+c.totProfJPY,0);
   const pct       = stcPKR>0?(sp/stcPKR)*100:0;
@@ -1320,7 +1333,7 @@ function renderResults(calcs, first) {
     <div class="rp-section">
       <div class="rp-section-title">Costs (PKR)</div>
       <div class="rp-row"><span class="rp-label">Product total</span><span class="rp-val">${fmtN(stj*yenRate)}<span class="rp-currency">PKR</span></span></div>
-      <div class="rp-row"><span class="rp-label">Customs total</span><span class="rp-val">${fmtN(scj*yenRate)}<span class="rp-currency">PKR</span></span></div>
+      <div class="rp-row"><span class="rp-label">Customs total ${customsOverride!==null?"⚠ overridden":""}</span><span class="rp-val">${fmtN(customsOverride!==null?customsOverride:scjRaw*yenRate)}<span class="rp-currency">PKR</span></span></div>
       <div class="rp-row"><span class="rp-label">Ship cost</span><span class="rp-val">${fmtN(totalShip*yenRate)}<span class="rp-currency">PKR</span></span></div>
       <div class="rp-row"><span class="rp-label">TCS total</span><span class="rp-val">${fmtN(sTCS)}<span class="rp-currency">PKR</span></span></div>
       <div class="rp-row" style="border-top:.5px solid var(--border);margin-top:4px;padding-top:4px"><span class="rp-label" style="font-weight:600">Total cost (incl TCS)</span><span class="rp-val" style="font-weight:700">${fmtN(stcPKR)}<span class="rp-currency">PKR</span></span></div>
@@ -1729,6 +1742,27 @@ function onCarrierChange() {
   shipSaved = false;
   renderLineList();
   toast('Carrier: ' + selectedCarrier, 'info', 2000);
+}
+
+function clearCustomsOverride() {
+  const el = document.getElementById('customsOverrideInput');
+  if (el) el.value = '';
+  onCustomsOverride('');
+}
+
+function onCustomsOverride(val) {
+  const str = String(val).trim();
+  if (str === '' || str === 'auto') {
+    customsOverride = null;
+  } else {
+    const v = parseFloat(str);
+    customsOverride = isFinite(v) && v >= 0 ? v : null;
+  }
+  const badge = document.getElementById('customsOverrideBadge');
+  const input = document.getElementById('customsOverrideInput');
+  if (badge) badge.textContent = customsOverride !== null ? 'PKR set' : '';
+  if (badge) badge.style.color = customsOverride !== null ? 'var(--wa)' : 'var(--t3)';
+  renderLineList();
 }
 
 function onTcsChange() {
