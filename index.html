@@ -1565,8 +1565,10 @@ function clearProduct(id) {
 
 function acSelect(id, prodIdx) {
   const r = rows.find(x=>x.id===id); if(!r) return;
-  const drop = document.getElementById('acd-'+id);
+  // Close the global shared dropdown
+  const drop = document.getElementById('acDropGlobal');
   if (drop) drop.classList.remove('open');
+  _acOwner = null;
   r.prodIdx = prodIdx;
   const p = products[prodIdx];
   if (p) { r.cost=p.cost; r.weight=p.weight; r.cv=getCvFromFormula(p.cost); r.cvManual=false; r.sale=p.sell||0; }
