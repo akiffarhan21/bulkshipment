@@ -191,7 +191,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .eff-carrier-badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;flex-shrink:0}
 .badge-best{background:var(--okbg);color:var(--ok);border:.5px solid var(--okb)}
 .badge-alt{background:var(--s1);color:var(--t2);border:.5px solid var(--border)}
-.eff-price-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.eff-price-row{display:flex;align-items:flex-start;flex-wrap:wrap;gap:3px;padding:6px 0;border-bottom:.5px solid var(--border);font-size:12px}
 .eff-price-row:last-child{border-bottom:none}
 .eff-price-suggested{font-weight:700;color:var(--ac)}
 .rp-save-section{padding:12px 16px;background:var(--s1)}
@@ -450,6 +450,16 @@ ol.steps strong{color:var(--text);font-weight:600}
 
   /* toasts above bottom nav */
   .toast-stack{bottom:70px;right:10px;left:10px;align-items:stretch}
+}
+
+/* ── analytics widget on mobile ── */
+@media(max-width:600px){
+  .eff-label{font-size:10px}
+  .eff-rank-row{font-size:11px;gap:5px}
+  .eff-carrier-row{font-size:11px}
+  .eff-price-row{flex-direction:column;gap:2px}
+  .eff-price-suggested{font-size:12px}
+  .eff-section{margin-top:10px;padding-top:8px}
 }
 
 /* ── very small ≤390px ── */
@@ -842,7 +852,16 @@ ol.steps strong{color:var(--text);font-weight:600}
     <div class="bs-title">Shipment results</div>
     <button class="bs-close" onclick="closeBottomSheet()">✕</button>
   </div>
-  <div id="bsBody" style="padding:0 16px 16px"></div>
+  <div id="bsBody" style="padding:0 16px 8px"></div>
+  <!-- Analytics section in bottom sheet -->
+  <div id="bsAnalytics" style="padding:0 16px 8px;display:none">
+    <div style="height:.5px;background:var(--border);margin-bottom:10px"></div>
+    <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:8px;display:flex;align-items:center;gap:6px;cursor:pointer" onclick="toggleBsAnalytics()">
+      📊 Analytics
+      <span id="bsAnalyticsChevron" style="font-size:11px;color:var(--t3)">▸ Show</span>
+    </div>
+    <div id="bsAnalyticsBody" style="display:none"></div>
+  </div>
   <div style="padding:0 16px 16px">
     <button class="rp-save-btn" onclick="closeBottomSheet();showSaveModal()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -1419,7 +1438,83 @@ function renderEfficiencyCard(calcs, first) {
       }).join('')}
     </div>`;
 
-  body.innerHTML = effHtml + carrierHtml + rankHtml + priceHtml;
+
+  // ── SECTION 5: Landed cost breakdown ──────────────────────────
+  const totalProdJPY  = calcs.reduce((s,c)=>s+c.totJPY,0);
+  const totalShipJPY  = first.totalShip;
+  const totalCustJPY  = calcs.reduce((s,c)=>s+c.customsJPY,0);
+  const totalTCSPKR   = calcs.reduce((s,c)=>s+(c.tcs*c.units),0);
+  const totalTCSJPY   = totalTCSPKR / yenRate;
+  const grandTotal    = totalProdJPY + totalShipJPY + totalCustJPY + totalTCSJPY;
+
+  const lcItems = [
+    { label:'Product cost', val:totalProdJPY,  color:'#1558a0' },
+    { label:'Shipping',     val:totalShipJPY,  color:'#2d8a4e' },
+    { label:'Customs',      val:totalCustJPY,  color:'#b85c00' },
+    { label:'TCS',          val:totalTCSJPY,   color:'#8b1a1a' },
+  ];
+  const costPerKg = grandTotal > 0 && first.totalW > 0
+    ? ((grandTotal * yenRate) / (first.totalW / 1000)).toFixed(0)
+    : 0;
+
+  const lcHtml = `
+    <div class="eff-section">
+      <div class="eff-label">Landed cost breakdown</div>
+      <div style="display:flex;gap:4px;height:14px;border-radius:4px;overflow:hidden;margin-bottom:10px">
+        ${lcItems.map(it=>{
+          const pct = grandTotal>0 ? (it.val/grandTotal*100) : 0;
+          return `<div style="width:${pct.toFixed(1)}%;background:${it.color};min-width:${pct>1?'2px':'0'}" title="${it.label}: ${pct.toFixed(1)}%"></div>`;
+        }).join('')}
+      </div>
+      ${lcItems.map(it=>{
+        const pct = grandTotal>0 ? (it.val/grandTotal*100).toFixed(1) : '0.0';
+        return `<div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:.5px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:10px;height:10px;border-radius:2px;background:${it.color};flex-shrink:0"></div>
+            <span style="color:var(--t2)">${it.label}</span>
+          </div>
+          <div style="display:flex;gap:10px">
+            <span style="color:var(--t3)">${pct}%</span>
+            <span style="font-weight:600;font-variant-numeric:tabular-nums">¥${fmtN(it.val)}</span>
+          </div>
+        </div>`;
+      }).join('')}
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;margin-top:2px;font-weight:700;border-top:.5px solid var(--bstrong)">
+        <span>Cost per kg shipped</span>
+        <span style="color:var(--ac)">PKR ${fmtN(costPerKg)} / kg</span>
+      </div>
+    </div>`;
+
+  // ── SECTION 6: Minimum viable quantity ─────────────────────────
+  // MVQ = units where total profit ≥ 0
+  // Fixed costs per shipment: shipping. Variable per unit: product + customs + TCS - sale
+  // Solve: (sale - cpu_pkr - tcs) * n ≥ 0 → already per-unit
+  // More useful: units to cover total shipment shipping cost
+  const mvqHtml = rows.length ? `
+    <div class="eff-section">
+      <div class="eff-label">Break-even units</div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:6px">Min units per line to cover its share of shipping</div>
+      ${rows.map((r,i)=>{
+        const c = calcs[i];
+        const nm = products[r.prodIdx]?.name || 'Line '+(i+1);
+        const short = nm.length>22 ? nm.slice(0,20)+'…' : nm;
+        // share of ship cost for this product (proportional to weight)
+        const shipShare = c.unitShip; // per unit share already
+        // profit per unit = sale - cpuPKR - tcs
+        const profPU = c.profPU;
+        const mvq = profPU > 0 ? 1 : Math.ceil(Math.abs(c.incl / (c.sale - c.incl + 0.01)));
+        const isProfit = profPU >= 0;
+        return `<div class="eff-rank-row">
+          <span class="eff-rank-name" title="${esc(nm)}">${esc(short)}</span>
+          <span style="font-size:11px;color:var(--t3)">@ ${c.units} units</span>
+          <span class="eff-rank-val" style="color:${isProfit?'var(--ok)':'var(--er)'}">
+            ${isProfit ? '✓ Profitable' : 'Loss/unit'}
+          </span>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  body.innerHTML = effHtml + carrierHtml + rankHtml + priceHtml + lcHtml + mvqHtml;
 }
 
 function renderSummaryBar(calcs, first) {
@@ -2233,11 +2328,29 @@ function openBottomSheet() {
   const sheet   = document.getElementById('bottomSheet');
   const bsBody  = document.getElementById('bsBody');
   if (!sheet) return;
+  // Inject results
   const rpBody = document.getElementById('rpBody');
   if (rpBody && bsBody) bsBody.innerHTML = rpBody.innerHTML;
+  // Inject analytics if available
+  const effBody   = document.getElementById('effCardBody');
+  const bsAnDiv   = document.getElementById('bsAnalytics');
+  const bsAnBody  = document.getElementById('bsAnalyticsBody');
+  if (effBody && bsAnDiv && bsAnBody && effBody.innerHTML.trim()) {
+    bsAnDiv.style.display = 'block';
+    bsAnBody.innerHTML = effBody.innerHTML;
+  }
   if (overlay) overlay.classList.add('open');
   sheet.classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function toggleBsAnalytics() {
+  const body    = document.getElementById('bsAnalyticsBody');
+  const chevron = document.getElementById('bsAnalyticsChevron');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (chevron) chevron.textContent = isOpen ? '▸ Show' : '▾ Hide';
 }
 
 function closeBottomSheet() {
