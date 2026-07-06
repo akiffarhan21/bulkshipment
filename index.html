@@ -180,6 +180,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .eff-suggestion{background:var(--acbg);border:.5px solid var(--acb);border-radius:6px;padding:9px 12px;margin-bottom:6px;font-size:12px;color:var(--ac);line-height:1.5}
 .eff-suggestion:last-child{margin-bottom:0}
 .eff-label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.eff-section{margin-top:12px;padding-top:10px;border-top:.5px solid var(--border)}
+.eff-rank-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.eff-rank-row:last-child{border-bottom:none}
+.eff-rank-num{width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.eff-rank-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eff-rank-val{font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0}
+.eff-carrier-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.eff-carrier-row:last-child{border-bottom:none}
+.eff-carrier-badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.badge-best{background:var(--okbg);color:var(--ok);border:.5px solid var(--okb)}
+.badge-alt{background:var(--s1);color:var(--t2);border:.5px solid var(--border)}
+.eff-price-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.eff-price-row:last-child{border-bottom:none}
+.eff-price-suggested{font-weight:700;color:var(--ac)}
 .rp-save-section{padding:12px 16px;background:var(--s1)}
 .rp-save-btn{width:100%;height:40px;background:var(--ac);border:none;border-radius:var(--r-sm);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .12s}
 .rp-save-btn:hover{background:#0e4590}
@@ -1307,35 +1321,105 @@ function renderEfficiencyCard(calcs, first) {
   if (!card || !body) return;
   if (!calcs.length || !first) { card.style.display = 'none'; return; }
 
-  const totalW = first.totalW;
-  const eff    = getShippingEfficiency(totalW);
   card.style.display = 'block';
   if (!card.classList.contains('open')) card.classList.add('open');
-  if (!eff) { body.innerHTML = '<div style="font-size:12px;color:var(--t3)">No rate data available</div>'; return; }
 
-  const barColor = eff.usedPct >= 80 ? 'eff-ok' : eff.usedPct >= 50 ? 'eff-warn' : 'eff-bad';
-  const tierLabel = (eff.cur.maxW / 1000).toFixed(eff.cur.maxW % 1000 === 0 ? 0 : 2) + 'kg';
+  const totalW = first.totalW;
+  const eff    = getShippingEfficiency(totalW);
 
-  const suggHtml = eff.suggestions.length
-    ? '<div class="eff-label">Suggestions</div>' +
-      eff.suggestions.map(s =>
-        `<div class="eff-suggestion">${s.type === 'fill' ? '💡' : '🚀'} ${s.msg}</div>`
-      ).join('')
-    : '<div style="font-size:12px;color:var(--ok)">✓ Excellent tier usage — well optimised</div>';
-
-  body.innerHTML = `
-    <div class="eff-tier">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-        <span style="color:var(--t2);font-size:12px">Current tier: <strong>${tierLabel} @ ¥${fmtN(eff.cur.price)}</strong></span>
-        <span style="font-weight:700;font-size:13px">${eff.usedPct}%</span>
+  // ── SECTION 1: Shipping efficiency ─────────────────────────────
+  let effHtml = '';
+  if (eff) {
+    const barColor = eff.usedPct >= 80 ? 'eff-ok' : eff.usedPct >= 50 ? 'eff-warn' : 'eff-bad';
+    const tierLabel = (eff.cur.maxW/1000).toFixed(eff.cur.maxW%1000===0?0:2)+'kg';
+    const suggHtml = eff.suggestions.length
+      ? eff.suggestions.map(s=>`<div class="eff-suggestion">${s.type==='fill'?'💡':'🚀'} ${s.msg}</div>`).join('')
+      : '<div style="font-size:12px;color:var(--ok)">✓ Excellent tier usage</div>';
+    effHtml = `
+      <div class="eff-label">Shipping tier</div>
+      <div class="eff-tier">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+          <span style="color:var(--t2);font-size:12px">Tier: <strong>${tierLabel} @ ¥${fmtN(eff.cur.price)}</strong></span>
+          <span style="font-weight:700;font-size:13px">${eff.usedPct}%</span>
+        </div>
+        <div class="eff-bar-wrap"><div class="eff-bar ${barColor}" style="width:${Math.min(eff.usedPct,100)}%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3)">
+          <span>${fmtN(totalW)}g used · ${fmtN(eff.wasted)}g remaining</span>
+          <span>¥${eff.cpg.toFixed(2)}/g</span>
+        </div>
       </div>
-      <div class="eff-bar-wrap"><div class="eff-bar ${barColor}" style="width:${Math.min(eff.usedPct,100)}%"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3)">
-        <span>${fmtN(totalW)}g used</span>
-        <span>${fmtN(eff.wasted)}g remaining · ¥${eff.cpg.toFixed(2)}/g</span>
-      </div>
-    </div>
-    ${suggHtml}`;
+      ${suggHtml}`;
+  }
+
+  // ── SECTION 2: Carrier comparison ──────────────────────────────
+  const carriers = [...new Set(allRates.map(r=>r.carrier))];
+  let carrierHtml = '';
+  if (carriers.length > 1) {
+    const costs = carriers.map(c => {
+      const rates = allRates.filter(r=>r.carrier===c).sort((a,b)=>a.maxW-b.maxW);
+      const tier  = rates.find(r=>totalW<=r.maxW) || rates[rates.length-1];
+      return { carrier:c, price: tier?.price||0 };
+    }).sort((a,b)=>a.price-b.price);
+    const cheapest = costs[0].price;
+    carrierHtml = `
+      <div class="eff-section">
+        <div class="eff-label">Carrier comparison</div>
+        ${costs.map((c,i)=>{
+          const isBest = i===0;
+          const diff   = c.price - cheapest;
+          return `<div class="eff-carrier-row">
+            <span class="eff-rank-name">${esc(c.carrier)}</span>
+            <span style="font-variant-numeric:tabular-nums;font-weight:600">¥${fmtN(c.price)}</span>
+            <span class="eff-carrier-badge ${isBest?'badge-best':'badge-alt'}">${isBest?'Best':'¥'+fmtN(diff)+' more'}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // ── SECTION 3: Margin ranking ───────────────────────────────────
+  const ranked = rows.map((r,i)=>({
+    name: products[r.prodIdx]?.name || 'Line '+(i+1),
+    pct:  calcs[i]?.pct || 0,
+    prof: calcs[i]?.profPU || 0,
+  })).sort((a,b)=>b.pct-a.pct);
+
+  const rankHtml = `
+    <div class="eff-section">
+      <div class="eff-label">Margin ranking</div>
+      ${ranked.map((r,i)=>{
+        const color = r.pct>=30?'var(--ok)':r.pct>=15?'var(--wa)':'var(--er)';
+        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        return `<div class="eff-rank-row">
+          <span class="eff-rank-num" style="background:${color}20;color:${color}">${medal||i+1}</span>
+          <span class="eff-rank-name" title="${esc(r.name)}">${esc(r.name)}</span>
+          <span class="eff-rank-val" style="color:${color}">${r.pct.toFixed(1)}%</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  // ── SECTION 4: Price suggestions for target margin ──────────────
+  const targetMargins = [20, 25, 30];
+  const priceHtml = `
+    <div class="eff-section">
+      <div class="eff-label">Suggested sale prices</div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:6px">Min sale price to hit target margin</div>
+      ${rows.map((r,i)=>{
+        const c   = calcs[i];
+        const nm  = products[r.prodIdx]?.name || 'Line '+(i+1);
+        const short = nm.length>22 ? nm.slice(0,20)+'…' : nm;
+        const prices = targetMargins.map(t=>{
+          // profPU/incl = t/100 → sale = incl*(1+t/100)
+          const suggested = Math.ceil(c.incl * (1 + t/100));
+          return `<span style="font-size:11px"><strong>${t}%</strong> → <span class="eff-price-suggested">PKR ${fmtN(suggested)}</span></span>`;
+        }).join('<span style="color:var(--border);margin:0 4px">|</span>');
+        return `<div class="eff-price-row">
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t2)">${esc(short)}</span>
+          <div style="display:flex;gap:6px;flex-shrink:0">${prices}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  body.innerHTML = effHtml + carrierHtml + rankHtml + priceHtml;
 }
 
 function renderSummaryBar(calcs, first) {
