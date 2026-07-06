@@ -77,13 +77,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .line-empty-icon{font-size:40px}
 .line-empty p{font-size:15px}
 .line-empty small{font-size:12px}
-.line-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:8px;transition:border-color .12s;overflow:hidden}
+.line-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:8px;transition:border-color .12s}
 .line-card:hover{border-color:var(--bstrong)}
 .line-card.expanded{border-color:var(--acb)}
 .lc-main{padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:start}
 .lc-row1{display:flex;align-items:center;gap:6px}
 .lc-num{width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.lc-inputs{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:8px}
+.lc-inputs{display:grid;grid-template-columns:0.9fr 0.8fr 1fr 0.9fr 1fr 1.1fr 1.1fr 0.9fr;gap:6px;margin-top:8px}
 .lc-input-ro{height:32px;padding:0 8px;border:.5px solid var(--bstrong);border-radius:var(--r-sm);font-size:14px;font-family:inherit;background:var(--s1);color:var(--text);width:100%;font-weight:700;text-align:right;display:flex;align-items:center;justify-content:flex-end;font-variant-numeric:tabular-nums}
 .lc-input-profit{background:var(--okbg)!important;border-color:var(--okb)!important;color:var(--ok)!important}
 .lc-input-loss{background:var(--erbg)!important;border-color:var(--erb)!important;color:var(--er)!important}
@@ -340,7 +340,7 @@ ol.steps strong{color:var(--text);font-weight:600}
 
   /* topbar: fixed, 2 rows on mobile */
   .topbar{
-    height:auto;min-height:44px;padding:.4rem .75rem;gap:5px;
+    height:auto;padding:.4rem .5rem;gap:4px;
     position:fixed;top:0;left:0;right:0;z-index:200;
     flex-wrap:wrap;
   }
@@ -348,11 +348,11 @@ ol.steps strong{color:var(--text);font-weight:600}
   .logo-sub{display:none}
   .tb-divider{display:none}
   /* hide carrier + customs val + pkg on mobile — accessible via Setup */
-  #tb-pkg,#tb-cvf,#tb-carrier{display:none}
+  #tb-pkg{display:none} /* pkg weight hidden — set in Setup */
   /* yen rate + TCS stay visible */
   .tb-ctrl{padding:2px 6px;gap:3px;font-size:11px}
   .tb-ctrl label{font-size:10px;color:var(--t2)}
-  .tb-ctrl input{width:46px;height:24px;font-size:12px}
+  .tb-ctrl input{width:42px;height:22px;font-size:11px}
   .tb-badge{display:none}
   .step-sm{width:22px;height:24px;font-size:13px}
   .tb-right{margin-left:auto}
@@ -362,7 +362,7 @@ ol.steps strong{color:var(--text);font-weight:600}
   .nav{display:none}
 
   /* workspace below topbar (topbar is ~44-88px auto) */
-  .workspace{margin-top:48px}
+  .workspace{margin-top:90px}
 
   /* panels */
   .panel{overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -370,7 +370,7 @@ ol.steps strong{color:var(--text);font-weight:600}
 
   /* panes */
   .split{display:block}
-  .pane-left{padding:.75rem .75rem 100px} /* extra bottom padding for summary bar + bottom nav */
+  .pane-left{padding:.5rem .5rem 100px} /* extra bottom padding for summary bar + bottom nav */
   .pane-right{display:none}
 
   /* shipment name */
@@ -378,17 +378,17 @@ ol.steps strong{color:var(--text);font-weight:600}
 
   /* line cards */
   .line-card{border-radius:10px;margin-bottom:10px}
-  .lc-main{padding:10px;grid-template-columns:1fr auto}
-  .lc-row1{gap:8px}
+  .lc-main{padding:8px 8px 8px 8px;grid-template-columns:1fr auto}
+  .lc-row1{gap:6px}
   .lc-num{width:24px;height:24px;font-size:11px;flex-shrink:0}
   .ac-input{height:40px;font-size:15px}
   /* 8 fields → 4 per row, 2 rows */
-  .lc-inputs{grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+  .lc-inputs{grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
   .lc-field label{font-size:10px}
-  .lc-input{height:38px;font-size:14px;font-weight:500;border-radius:6px;padding:0 6px}
+  .lc-input{height:38px;font-size:14px;font-weight:500;border-radius:6px;padding:0 4px}
   .lc-input-hi{height:38px;font-size:14px}
   .lc-input-ro{height:38px;font-size:13px}
-  .lc-step{width:28px;height:38px;font-size:16px}
+  .lc-step{width:24px;height:38px;font-size:15px;padding:0;flex-shrink:0}
   .lc-del{width:34px;height:34px;font-size:18px}
   .lc-detail-grid{grid-template-columns:repeat(2,1fr);gap:8px 12px}
   .lc-stat-val{font-size:14px}
@@ -464,7 +464,7 @@ ol.steps strong{color:var(--text);font-weight:600}
 
 /* ── very small ≤390px ── */
 @media(max-width:390px){
-  .lc-inputs{grid-template-columns:repeat(4,1fr);gap:4px}
+  .lc-inputs{grid-template-columns:1fr 1fr;gap:5px}
   .lc-input{height:36px;font-size:13px}
   .lc-step{width:26px;height:36px}
   .lc-field label{font-size:9px}
@@ -577,7 +577,7 @@ ol.steps strong{color:var(--text);font-weight:600}
     <div class="tb-ctrl" id="tb-cvf" title="Customs formula — use 'cost' as variable e.g. cost/3">
       <label>Customs Val=</label>
       <input type="text" id="cvFormula" value="cost/3" placeholder="cost/3"
-        style="width:72px;font-family:monospace"
+        style="width:60px;font-family:monospace;font-size:11px"
         onchange="if(window.applyCvFormula)applyCvFormula()"
         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();if(window.applyCvFormula)applyCvFormula()}">
     </div>
@@ -1302,6 +1302,16 @@ function renderResults(calcs, first) {
   meta.textContent = `${su} unit${su!==1?'s':''} · ${rows.length} line${rows.length!==1?'s':''}`;
 
   const rpHtml = `
+    <div class="rp-section" style="padding-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--t2)">Products</span>
+        <span style="font-size:16px;font-weight:700">${rows.length} <span style="font-size:11px;font-weight:400;color:var(--t3)">lines</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <span style="font-size:12px;color:var(--t2)">Total units</span>
+        <span style="font-size:16px;font-weight:700">${fmtN(su)}</span>
+      </div>
+    </div>
     <div class="rp-section">
       <div class="rp-section-title">Shipping</div>
       <div class="rp-row"><span class="rp-label">Total weight</span><span class="rp-val">${fmtN(totalW)}g</span></div>
@@ -1416,29 +1426,6 @@ function renderEfficiencyCard(calcs, first) {
       }).join('')}
     </div>`;
 
-  // ── SECTION 4: Price suggestions for target margin ──────────────
-  const targetMargins = [20, 25, 30];
-  const priceHtml = `
-    <div class="eff-section">
-      <div class="eff-label">Suggested sale prices</div>
-      <div style="font-size:11px;color:var(--t3);margin-bottom:6px">Min sale price to hit target margin</div>
-      ${rows.map((r,i)=>{
-        const c   = calcs[i];
-        const nm  = products[r.prodIdx]?.name || 'Line '+(i+1);
-        const short = nm.length>22 ? nm.slice(0,20)+'…' : nm;
-        const prices = targetMargins.map(t=>{
-          // profPU/incl = t/100 → sale = incl*(1+t/100)
-          const suggested = Math.ceil(c.incl * (1 + t/100));
-          return `<span style="font-size:11px"><strong>${t}%</strong> → <span class="eff-price-suggested">PKR ${fmtN(suggested)}</span></span>`;
-        }).join('<span style="color:var(--border);margin:0 4px">|</span>');
-        return `<div class="eff-price-row">
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t2)">${esc(short)}</span>
-          <div style="display:flex;gap:6px;flex-shrink:0">${prices}</div>
-        </div>`;
-      }).join('')}
-    </div>`;
-
-
   // ── SECTION 5: Landed cost breakdown ──────────────────────────
   const totalProdJPY  = calcs.reduce((s,c)=>s+c.totJPY,0);
   const totalShipJPY  = first.totalShip;
@@ -1485,36 +1472,8 @@ function renderEfficiencyCard(calcs, first) {
       </div>
     </div>`;
 
-  // ── SECTION 6: Minimum viable quantity ─────────────────────────
-  // MVQ = units where total profit ≥ 0
-  // Fixed costs per shipment: shipping. Variable per unit: product + customs + TCS - sale
-  // Solve: (sale - cpu_pkr - tcs) * n ≥ 0 → already per-unit
-  // More useful: units to cover total shipment shipping cost
-  const mvqHtml = rows.length ? `
-    <div class="eff-section">
-      <div class="eff-label">Break-even units</div>
-      <div style="font-size:11px;color:var(--t3);margin-bottom:6px">Min units per line to cover its share of shipping</div>
-      ${rows.map((r,i)=>{
-        const c = calcs[i];
-        const nm = products[r.prodIdx]?.name || 'Line '+(i+1);
-        const short = nm.length>22 ? nm.slice(0,20)+'…' : nm;
-        // share of ship cost for this product (proportional to weight)
-        const shipShare = c.unitShip; // per unit share already
-        // profit per unit = sale - cpuPKR - tcs
-        const profPU = c.profPU;
-        const mvq = profPU > 0 ? 1 : Math.ceil(Math.abs(c.incl / (c.sale - c.incl + 0.01)));
-        const isProfit = profPU >= 0;
-        return `<div class="eff-rank-row">
-          <span class="eff-rank-name" title="${esc(nm)}">${esc(short)}</span>
-          <span style="font-size:11px;color:var(--t3)">@ ${c.units} units</span>
-          <span class="eff-rank-val" style="color:${isProfit?'var(--ok)':'var(--er)'}">
-            ${isProfit ? '✓ Profitable' : 'Loss/unit'}
-          </span>
-        </div>`;
-      }).join('')}
-    </div>` : '';
 
-  body.innerHTML = effHtml + carrierHtml + rankHtml + priceHtml + lcHtml + mvqHtml;
+  body.innerHTML = effHtml + carrierHtml + rankHtml + lcHtml;
 }
 
 function renderSummaryBar(calcs, first) {
@@ -1625,9 +1584,18 @@ function acInput(id, val) {
   // Position below the input using fixed viewport coords
   const inputEl = document.querySelector('#acw-'+id+' .ac-input');
   if (inputEl) {
-    const rect = inputEl.getBoundingClientRect();
-    drop.style.top  = (rect.bottom + 4) + 'px';
+    const rect     = inputEl.getBoundingClientRect();
+    const dropH    = Math.min(drop.scrollHeight || 300, window.innerHeight * 0.6);
+    const spaceBelow = window.innerHeight - rect.bottom - 8;
+    const spaceAbove = rect.top - 8;
+    // Flip above input if not enough space below
+    if (spaceBelow < dropH && spaceAbove > spaceBelow) {
+      drop.style.top = Math.max(4, rect.top - dropH - 4) + 'px';
+    } else {
+      drop.style.top = (rect.bottom + 4) + 'px';
+    }
     drop.style.left = Math.max(4, Math.min(rect.left, window.innerWidth - 524)) + 'px';
+    drop.style.maxHeight = Math.max(spaceBelow, spaceAbove) - 8 + 'px';
   }
   drop.classList.add('open');
   const r = rows.find(x => x.id === id);
@@ -2045,16 +2013,17 @@ function renderShipCard(s,i) {
         <td class="tr num">${fmtN(l.cpuPKR)}</td><td class="tr num">${fmtN(l.sale)}</td>
         <td class="tr num ${lpc}" style="font-weight:700">${fmtN(l.profitPU)}</td>
         <td class="tr num ${lpc}">${fmtN(l.totProfitPKR)}</td>
-        <td class="tr num ${lpc}">${num(l.margin).toFixed(1)}%</td>
+        <td class="tr num ${lpc}">${(num(l.margin)<1.5?num(l.margin)*100:num(l.margin)).toFixed(1)}%</td>
       </tr>`;
     }).join('');
+    const totalUnits = lineRows.reduce((s,l)=>s+(num(l.units)||0),0);
     sumHtml=`<div class="slist-sumrow">
-      <div class="slist-sumcard"><div class="sl">Lines</div><div class="sv">${lineRows.length}</div></div>
+      <div class="slist-sumcard"><div class="sl">Products</div><div class="sv">${lineRows.length} lines</div></div>
+      <div class="slist-sumcard"><div class="sl">Total units</div><div class="sv num">${fmtN(totalUnits)}</div></div>
       <div class="slist-sumcard"><div class="sl">Ship cost (¥)</div><div class="sv num">${fmtN(s.shipCost||0)}</div></div>
       <div class="slist-sumcard"><div class="sl">Total cost (¥)</div><div class="sv num">${fmtN(s.totalCost)}</div></div>
       <div class="slist-sumcard"><div class="sl">Total profit (PKR)</div><div class="sv num ${pc}">${fmtN(s.totalProfit)}</div></div>
       <div class="slist-sumcard"><div class="sl">Wt (g)</div><div class="sv num">${fmtN(s.totalWt||0)}</div></div>
-      <div class="slist-sumcard"><div class="sl">Rate</div><div class="sv">1¥=${yr}</div></div>
     </div>`;
     detailHtml=`<div style="overflow-x:auto"><table>
       <thead><tr>
