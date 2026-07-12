@@ -1069,13 +1069,15 @@ function getShipCost(wg) {
 }
 
 function calcAll() {
-  const totalW    = rows.reduce((s,r) => s + (num(r.weight)*num(r.units)), 0) + pkgWeight;
-  const totalShip = getShipCost(totalW);
+  const totalProdW = rows.reduce((s,r) => s + (num(r.weight)*num(r.units)), 0);
+  const totalW     = totalProdW + pkgWeight; // includes pkg for tier lookup
+  const totalShip  = getShipCost(totalW);
   return rows.map(r => {
     const cost     = num(r.cost),  wt   = num(r.weight), units = Math.max(1, num(r.units));
     const totJPY   = cost * units, totWt= wt * units;
     const rowProdW = wt * units;
-    const unitShip = (totalW>0 && units>0) ? totalShip*(rowProdW/totalW)/units : 0;
+    // Distribute shipping by product weight only (pkg weight absorbed proportionally)
+    const unitShip = (totalProdW>0 && units>0) ? totalShip*(rowProdW/totalProdW)/units : 0;
     const allShip  = unitShip * units;
     const cv       = r.cv != null ? num(r.cv) : getCvFromFormula(cost);
     const customsJPY= 1.4 * cv * units;
